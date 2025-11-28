@@ -19,8 +19,8 @@ class DisasterResponse(BaseModel):
 class DisasterAgent:
     def __init__(self):
         # The SDK will automatically pick up GOOGLE_APPLICATION_CREDENTIALS from env
-        self.client = genai.Client(vertexai=True, location="us-central1")
-        self.model_id = "gemini-2.0-flash-001"
+        self.client = genai.Client(vertexai=True, location="asia-south1")
+        self.model_id = "gemini-2.5-flash"
 
     def search_and_extract(self, query: str) -> dict:
         prompt = f"""

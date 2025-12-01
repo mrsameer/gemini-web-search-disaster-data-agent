@@ -29,13 +29,18 @@ class DisasterAgent:
         Return the results as a JSON object with a list of events.
         """
 
+        # Retrieve label from environment variable, default to APDIMS-LOCAL-PREM
+        owner_gemini_label = os.getenv("OWNER_GEMINI_LABEL", "APDIMS-LOCAL")
+        labels = {"owner-gemini": owner_gemini_label}
+
         response = self.client.models.generate_content(
             model=self.model_id,
             contents=prompt,
             config=types.GenerateContentConfig(
                 tools=[types.Tool(google_search=types.GoogleSearch())],
                 response_mime_type="application/json",
-                response_schema=DisasterResponse
+                response_schema=DisasterResponse,
+                labels=labels
             )
         )
         

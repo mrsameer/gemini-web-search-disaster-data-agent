@@ -5,11 +5,16 @@ import json
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+class Severity(BaseModel):
+    deaths: str = Field(description="Number of deaths reported (e.g., '10', 'Unknown')")
+    relocations: str = Field(description="Number of people relocated or displaced (e.g., '500', 'None')")
+    level: Optional[str] = Field(description="Severity level (e.g., High, Medium, Low) for UI display")
+
 class DisasterEvent(BaseModel):
     location: str = Field(description="The specific location of the disaster (City, Region, Country)")
-    date: str = Field(description="The date or timeframe of the disaster")
+    date: str = Field(description="The date of the disaster in DDMMYYYY, MMYYYY, or YYYY format")
     type: str = Field(description="The type of disaster (e.g., Earthquake, Flood, Wildfire)")
-    severity: Optional[str] = Field(description="Severity or magnitude of the disaster if available")
+    severity: Severity = Field(description="Detailed severity information including deaths and relocations")
     description: str = Field(description="A brief summary of what happened")
     source: str = Field(description="The source of the information")
 
@@ -49,7 +54,10 @@ class DisasterAgent:
         Search Results:
         {search_response.text}
         
-        Return the results as a JSON object matching the schema.
+        Requirements:
+        1. Date must be in one of these formats: DDMMYYYY, MMYYYY, or YYYY.
+        2. Severity must include 'deaths' and 'relocations' counts.
+        3. Return the results as a JSON object matching the schema.
         """
 
         response = self.client.models.generate_content(

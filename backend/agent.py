@@ -23,21 +23,39 @@ class DisasterAgent:
         self.model_id = "gemini-2.5-flash"
 
     def search_and_extract(self, query: str) -> dict:
-        prompt = f"""
-        Search for recent natural disasters related to: '{query}'.
-        Extract key details for each event found.
-        Return the results as a JSON object with a list of events.
-        """
-
-        # Retrieve label from environment variable, default to APDIMS-LOCAL-PREM
-        owner_gemini_label = os.getenv("OWNER_GEMINI_LABEL", "APDIMS-LOCAL")
+        # Retrieve label from environment variable, default to apdims-local
+        owner_gemini_label = os.getenv("OWNER_GEMINI_LABEL", "apdims-local").lower()
         labels = {"owner-gemini": owner_gemini_label}
+
+        # Step 1: Search (Text Mode)
+        search_prompt = f"Search for recent natural disasters related to: '{query}'. Provide a detailed list of events found."
+        
+        search_response = self.client.models.generate_content(
+            model=self.model_id,
+            contents=search_prompt,
+            config=types.GenerateContentConfig(
+                tools=[types.Tool(google_search=types.GoogleSearch())],
+                labels=labels
+            )
+        )
+        
+        if not search_response.text:
+            return {"events": []}
+
+        # Step 2: Extract (JSON Mode)
+        extraction_prompt = f"""
+        Analyze the following search results and extract key details for each disaster event.
+        
+        Search Results:
+        {search_response.text}
+        
+        Return the results as a JSON object matching the schema.
+        """
 
         response = self.client.models.generate_content(
             model=self.model_id,
-            contents=prompt,
+            contents=extraction_prompt,
             config=types.GenerateContentConfig(
-                tools=[types.Tool(google_search=types.GoogleSearch())],
                 response_mime_type="application/json",
                 response_schema=DisasterResponse,
                 labels=labels
